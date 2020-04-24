@@ -63,6 +63,7 @@ def main(args):
     
     # Print out the image and the generated caption
     print (sentence)
+    pickle.dump( sentence, open( "save.p", "wb" ) )
     image = Image.open(args.image)
     plt.imshow(np.asarray(image))
     
