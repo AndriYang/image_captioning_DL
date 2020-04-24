@@ -19,17 +19,32 @@ class Window(Frame):
         self.img_name = self.get_img_name(self.path)
         self.image_path = path + self.img_name
         self.img = Label(image='')
+        self.pred_caption = Label(text='')
         self.setimage()
         self.predictbutton()
-        self.setbutton()
+        self.button()
         
     
     def get_img_name(self, path):
         img_names = os.listdir(self.path)
         img_name = random.choice(img_names)
         return img_name
+    
+    def img_resize(self, img):
+        width = img.size[0]
+        height = img.size[1]
+        boundary = 500
         
-    def setbutton(self):
+        if  width < height:
+            resized_image = img.resize((int(float(width) * float(boundary/height)),boundary),
+                                             Image.ANTIALIAS)
+        else:
+            resized_image = img.resize((boundary,int(float(height) * float(boundary/width))),
+                                             Image.ANTIALIAS)
+        
+        return resized_image
+        
+    def button(self):
         btn = Button(self, text="Next Image", command=self.on_click)
         btn.place(x=200,y=500)
         
@@ -47,6 +62,7 @@ class Window(Frame):
         self.img_name = self.get_img_name(self.path)
         self.image_path = path + self.img_name
         self.img.config(image='')
+        self.pred_caption.config(text='')
         self.setimage(show=False)
         
         self.setlabel(display=False)
@@ -73,24 +89,12 @@ class Window(Frame):
         if display:
             result = pickle.load( open( "save.p", "rb" ) )
             pred_caption= Label(self, text="caption: "+result)
-            pred_caption.place(x=2,y=450)
+            self.pred_caption = pred_caption
+            self.pred_caption.place(x=2,y=450)
         else:
             pred_caption= Label(self, text="")
             pred_caption.place(x=2,y=450)
         
-    def img_resize(self, img):
-        width = img.size[0]
-        height = img.size[1]
-        boundary = 500
-        
-        if  width < height:
-            resized_image = img.resize((int(float(width) * float(boundary/height)),boundary),
-                                             Image.ANTIALIAS)
-        else:
-            resized_image = img.resize((boundary,int(float(height) * float(boundary/width))),
-                                             Image.ANTIALIAS)
-        
-        return resized_image
     
     
 if __name__ == '__main__':       
