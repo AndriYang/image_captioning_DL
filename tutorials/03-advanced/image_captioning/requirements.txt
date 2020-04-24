@@ -1,0 +1,7 @@
+matplotlib
+nltk
+numpy
+Pillow
+argparse
+Cython
+pycocotools
