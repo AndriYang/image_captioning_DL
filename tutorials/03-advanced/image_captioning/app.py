@@ -23,15 +23,14 @@ class Window(Frame):
         self.predictbutton()
         self.setbutton()
         
-        
-        
+    
     def get_img_name(self, path):
         img_names = os.listdir(self.path)
         img_name = random.choice(img_names)
         return img_name
         
     def setbutton(self):
-        btn = Button(self, text="Next Image", command=self.clicked)
+        btn = Button(self, text="Next Image", command=self.on_click)
         btn.place(x=200,y=500)
         
     def predictbutton(self):
@@ -43,20 +42,31 @@ class Window(Frame):
         self.setlabel(display=True)
 
 
-    def clicked(self):
+    def on_click(self):
+        self.update_idletasks()
         self.img_name = self.get_img_name(self.path)
         self.image_path = path + self.img_name
-        self.setimage()
         self.img.config(image='')
+        self.setimage(show=False)
+        
         self.setlabel(display=False)
                       
-    def setimage(self):
+    def setimage(self, show=True):
         load = Image.open(self.image_path)
         load = self.img_resize(load)
-        render = ImageTk.PhotoImage(load)
-        img = Label(self, image=render)
-        img.config(image=render)
-        img.image = render
+        
+        
+        if show:
+            render = ImageTk.PhotoImage(load)
+            img = Label(self, image=render)
+            img.config(image=render)
+            img.image = render
+
+        else:
+            render = ImageTk.PhotoImage(load)
+            img = Label(self, image=render)
+            self.img.config(image=render)
+            self.img.image = render
         img.place(x=0, y=0)
      
     def setlabel(self, display=True):
@@ -82,11 +92,12 @@ class Window(Frame):
         
         return resized_image
     
-       
-root = Tk()
-folder_path = filedialog.askdirectory()
-path = folder_path + '/'
-app = Window(root,path)
-root.wm_title("Image Captioning")
-root.geometry("500x5000")
-root.mainloop()
+    
+if __name__ == '__main__':       
+    root = Tk()
+    folder_path = filedialog.askdirectory()
+    path = folder_path + '/'
+    app = Window(root,path)
+    root.wm_title("Image Captioning")
+    root.geometry("500x5000")
+    root.mainloop()
