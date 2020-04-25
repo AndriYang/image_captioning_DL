@@ -3,8 +3,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 import os
-from os import listdir
-from os.path import isfile, join
 import pickle
 from data_loader import get_loader 
 from build_vocab import Vocabulary
@@ -13,11 +11,9 @@ from torch.nn.utils.rnn import pack_padded_sequence
 from torchvision import transforms
 import matplotlib.pyplot as plt
 import shutil
-from torchtext.data.metrics import bleu_score
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
 
 def main(args):
     # Create model directory
@@ -48,10 +44,6 @@ def main(args):
     data_loader = get_loader(args.image_dir, args.caption_path, vocab, 
                              transform, args.batch_size,
                              shuffle=True, num_workers=args.num_workers) 
-    
-    val_data_loader = get_loader(args.val_image_dir, args.val_caption_path, vocab, 
-                             transform, args.batch_size,
-                             shuffle=True, num_workers=args.num_workers) 
 
     # Build the models
     encoder = EncoderCNN(args.embed_size).to(device)
@@ -68,7 +60,7 @@ def main(args):
     losses = 0
     train_losses =[]
     for epoch in range(args.num_epochs):
-        for i, (images, captions, lengths, sentences) in enumerate(data_loader):
+        for i, (images, captions, lengths) in enumerate(data_loader):
             
             # Set mini-batch dataset
             images = images.to(device)
@@ -77,10 +69,6 @@ def main(args):
             
             # Forward, backward and optimize
             features = encoder(images)
-#             candidate_corpus = get_sentence(features, decoder, vocab)
-#             candidate_corpus = candidate_corpus.split(' ')
-#             x = bleu_score(candidate_corpus, sentences)
-#             print(x)
             outputs = decoder(features, captions, lengths)
             loss = criterion(outputs, targets)
             losses += loss.item()
@@ -103,86 +91,20 @@ def main(args):
                 
         losses /= len(data_loader)
         train_losses.append(losses)
-    
-    
-    # Find the latest encoder and decoder
-    model_root = 'models'
-    files = [f for f in listdir(model_root) if isfile(join(model_root, f))]
-    latest = int(len(files)/6)
-    
-    encoder = encoder.to(device)
-    decoder = decoder.to(device)
-
-    # Load the trained model parameters
-    encoder.load_state_dict(torch.load(f'models/encoder-{latest}-3000.ckpt'))
-    decoder.load_state_dict(torch.load(f'models/decoder-{latest}-3000.ckpt'))
-    
-    val_total_step = len(val_data_loader)
-    
-    val_loss = 0
-    val_losses =[]
-    for epoch in range(args.num_epochs):
-        for i, (images, captions, lengths, sentences) in enumerate(val_data_loader):
-            
-            # Set mini-batch dataset
-            images = images.to(device)
-            captions = captions.to(device)
-            targets = pack_padded_sequence(captions, lengths, batch_first=True)[0]
-            
-            # Forward, backward and optimize
-            features = encoder(images)
-            
-            outputs = decoder(features, captions, lengths)
-            loss = criterion(outputs, targets)
-            val_loss += loss.item()
-
-            # Print log info
-            if i % args.log_step == 0:
-                print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Perplexity: {:5.4f}'
-                      .format(epoch, args.num_epochs, i, val_total_step, loss.item(), np.exp(loss.item()))) 
-                
-#             # Save the model checkpoints
-#             if (i+1) % args.save_step == 0:
-#                 torch.save(decoder.state_dict(), os.path.join(
-#                     args.model_path, 'decoder-{}-{}.ckpt'.format(epoch+1, i+1)))
-#                 torch.save(encoder.state_dict(), os.path.join(
-#                     args.model_path, 'encoder-{}-{}.ckpt'.format(epoch+1, i+1)))
-                
-        val_loss /= len(data_loader)
-        val_losses.append(val_loss)
         
-    
-        
-    plot_loss_graph(args.num_epochs, train_losses, val_losses, init_folder)
-    
-def get_sentence(features, decoder, vocab):
-    sampled_ids = decoder.sample(features)
-    sampled_ids = sampled_ids[0].cpu().numpy()
-    # Convert word_ids to words
-    sampled_caption = []
-    for word_id in sampled_ids:
-        word = vocab.idx2word[word_id]
-        sampled_caption.append(word)
-        if word != '<start>' and word != '<end>':
-            sentence = ' '.join(sampled_caption)
-        if word == '<end>':
-            break
+    plot_loss_graph(args.num_epochs, train_losses,  init_folder)
 
-    # Print out the image and the generated caption
-    print (sentence)
-    return sentence
-
-def plot_loss_graph(epoch, training_losses, validation_losses,init_folder):
+def plot_loss_graph(epoch, training_losses, init_folder):
     epoch_list = np.arange(1, epoch + 1)
     plt.xticks(epoch_list)
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.plot(epoch_list, training_losses, label = "Training loss")
-    plt.plot(epoch_list, validation_losses, label = "Validation loss")
+#     plt.plot(epoch_list, validation_losses, label = "Validation loss")
     plt.legend(loc = "upper right")
     path = str(init_folder) + "/loss.png"
     plt.savefig(path)
-#     plt.show()
+    plt.show()
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -190,9 +112,7 @@ if __name__ == '__main__':
     parser.add_argument('--crop_size', type=int, default=224 , help='size for randomly cropping images')
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
     parser.add_argument('--image_dir', type=str, default='data/resized2014', help='directory for resized images')
-    parser.add_argument('--val_image_dir', type=str, default='data/val_resized2014', help='directory for validation resized images')
     parser.add_argument('--caption_path', type=str, default='../../../../../datasets/coco2014/trainval_coco2014_captions/captions_train2014.json', help='path for train annotation json file')
-    parser.add_argument('--val_caption_path', type=str, default='../../../../../datasets/coco2014/trainval_coco2014_captions/captions_val2014.json', help='path for val annotation json file')
     parser.add_argument('--log_step', type=int , default=10, help='step size for prining log info')
     parser.add_argument('--save_step', type=int , default=1000, help='step size for saving trained models')
     
