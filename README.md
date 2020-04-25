@@ -6,10 +6,6 @@ https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/ima
 ## Install requirements
 1. pip install -r requirements.txt
 
-# Download the dataset
-1. chmod +x download.sh
-2. ./download.sh
-
 ## Preprocessing
 2. python build_vocab.py   
 3. python resize.py
