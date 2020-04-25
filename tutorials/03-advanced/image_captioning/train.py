@@ -9,7 +9,8 @@ from build_vocab import Vocabulary
 from model import EncoderCNN, DecoderRNN
 from torch.nn.utils.rnn import pack_padded_sequence
 from torchvision import transforms
-
+import matplotlib.pyplot as plt
+import shutil
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -19,6 +20,14 @@ def main(args):
     if not os.path.exists(args.model_path):
         os.makedirs(args.model_path)
     
+    init_folder = 'results'
+    
+    if not os.path.exists(init_folder):
+        os.makedirs(init_folder)
+    else:
+        shutil.rmtree(init_folder)
+        os.makedirs(init_folder)
+        
     # Image preprocessing, normalization for the pretrained resnet
     transform = transforms.Compose([ 
         transforms.RandomCrop(args.crop_size),
@@ -47,6 +56,9 @@ def main(args):
     
     # Train the models
     total_step = len(data_loader)
+    
+    losses = 0
+    train_losses =[]
     for epoch in range(args.num_epochs):
         for i, (images, captions, lengths) in enumerate(data_loader):
             
@@ -59,6 +71,7 @@ def main(args):
             features = encoder(images)
             outputs = decoder(features, captions, lengths)
             loss = criterion(outputs, targets)
+            losses += loss.item()
             decoder.zero_grad()
             encoder.zero_grad()
             loss.backward()
@@ -75,8 +88,24 @@ def main(args):
                     args.model_path, 'decoder-{}-{}.ckpt'.format(epoch+1, i+1)))
                 torch.save(encoder.state_dict(), os.path.join(
                     args.model_path, 'encoder-{}-{}.ckpt'.format(epoch+1, i+1)))
+                
+        losses /= len(data_loader)
+        train_losses.append(losses)
+        
+    plot_loss_graph(args.num_epochs, train_losses,  init_folder)
 
-
+def plot_loss_graph(epoch, training_losses, init_folder):
+    epoch_list = np.arange(1, epoch + 1)
+    plt.xticks(epoch_list)
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.plot(epoch_list, training_losses, label = "Training loss")
+#     plt.plot(epoch_list, validation_losses, label = "Validation loss")
+    plt.legend(loc = "upper right")
+    path = str(init_folder) + "/loss.png"
+    plt.savefig(path)
+    plt.show()
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', type=str, default='models/' , help='path for saving trained models')
