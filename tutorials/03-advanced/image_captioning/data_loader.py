@@ -26,6 +26,7 @@ class CocoDataset(data.Dataset):
         self.ids = list(self.coco.anns.keys())
         self.vocab = vocab
         self.transform = transform
+        print()
 
     def __getitem__(self, index):
         """Returns one data pair (image and caption)."""
