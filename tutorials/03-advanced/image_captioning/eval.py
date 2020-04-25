@@ -76,7 +76,6 @@ def main(args):
         feature = encoder(images)
         sampled_ids = decoder.sample(feature)
         sampled_ids = sampled_ids.cpu().numpy()          # (1, max_seq_length) -> (max_seq_length)
-        # print(sampled_ids)
         
         batch_ref = []
         batch_hypo = []
@@ -123,7 +122,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_path', type=str, default='models/' , help='path for saving trained models')
     parser.add_argument('--crop_size', type=int, default=224 , help='size for randomly cropping images')
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
-    parser.add_argument('--image_dir', type=str, default='data/resized2014_val', help='directory for resized images')
+    parser.add_argument('--image_dir', type=str, default='data/val_resized2014', help='directory for resized images')
     parser.add_argument('--caption_path', type=str, default='../../../../../datasets/coco2014/trainval_coco2014_captions/captions_val2014.json', help='path for train annotation json file')
     parser.add_argument('--log_step', type=int , default=10, help='step size for prining log info')
     parser.add_argument('--save_step', type=int , default=1000, help='step size for saving trained models')
