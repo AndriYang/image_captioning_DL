@@ -28,6 +28,8 @@ If you change the embedding dimension size here, you will have to include the sa
 6. python resize.py
 
 ## Training
+To train the code with the default 50 dimensions, run:
+
 7. python train.py 
 
 As mentioned earlier, if you decided to change the embedding dimensions from the default 50, please include the --embed_size flag
