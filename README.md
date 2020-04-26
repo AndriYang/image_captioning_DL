@@ -2,9 +2,6 @@
 # Source
 https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/image_captioning
 
-# Before anything else
-0. cd tutorials/03-advanced/image_captioning
-
 # To run
 ## Install requirements
 1. pip install -r requirements.txt
@@ -27,8 +24,9 @@ python build_glove --embed_size 100
 If you change the embedding dimension size here, you will have to include the same flag and dimension size for 'train.py' and 'app.py' scripts when running them.
 
 ## Preprocessing
-5. python build_vocab.py   
-6. python resize.py
+5. python resize.py
+6. python build_vocab.py   
+
 
 ## Training
 To train the code with the default 50 dimensions, run:
