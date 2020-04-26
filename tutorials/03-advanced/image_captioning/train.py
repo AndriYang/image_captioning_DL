@@ -124,7 +124,7 @@ def main(args):
         train_losses.append(losses)
        
         
-    plot_loss_graph(args.num_epochs, train_losses, val_losses, init_folder)
+    plot_loss_graph(args.num_epochs, train_losses, init_folder)
     
 def get_sentence(features, decoder, vocab):
     sampled_ids = decoder.sample(features)
