@@ -2,6 +2,9 @@
 # Source
 https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/image_captioning
 
+# Before anything else
+0. cd tutorials/03-advanced/image_captioning
+
 # To run
 ## Install requirements
 1. pip install -r requirements.txt
