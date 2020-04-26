@@ -10,7 +10,7 @@ https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/ima
 2. chmod +x download_glove6B.sh
 3. ./download_glove6B.sh
 
-## Build glove pickles for use during training
+## Build glove dictionary for use during training
 4. python build_glove
 
 For the glove6B files, there are 4 different files of different dimensions:
@@ -21,7 +21,7 @@ If you want to test out with the other 3 dimensions, please specify what embeddi
 Example:
 python build_glove --embed_size 100
 
-If you change the embedding dimension size here, you will have to include the same flag and dimension size for 'train.py' script.
+If you change the embedding dimension size here, you will have to include the same flag and dimension size for 'train.py' and 'app.py' scripts when running them.
 
 ## Preprocessing
 5. python build_vocab.py   
@@ -37,4 +37,9 @@ python train.py --embed_size 100
 
 ## GUI
 8. python app.py
+
+If you changed the default dimension size when building the glove dictionary, indicate the --embed_size flag
+
+Example: python app.py --embed_size 100
+
 9. select the folder where the images are stored for doing captioning prediction
