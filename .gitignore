@@ -1,6 +1,5 @@
+.ipynb_checkpoints
 save.p
 glove_data
 data
-
-#Uncomment later
-# .ipynb_checkpoints
+models
