@@ -29,6 +29,9 @@ def train(train_data_loader, encoder, decoder, criterion, encoder_optimizer, dec
     
     losses = 0
     for i, (images, captions, lengths, sentences) in enumerate(train_data_loader):
+        
+        if i >= 20:
+            break
 
         # Set mini-batch dataset
         images = images.to(device)
@@ -55,6 +58,13 @@ def train(train_data_loader, encoder, decoder, criterion, encoder_optimizer, dec
         if i % args.log_step == 0:
             print(f'Training Epoch [{epoch}/{args.num_epochs}], Step [{i}/{total_step}], Loss: {loss.item():.4f}, Perplexity: {np.exp(loss.item()):5.4f}') 
 
+        # Save the model checkpoints
+        # if (i+1) % args.save_step == 0:
+        #     torch.save(decoder.state_dict(), os.path.join(
+        #         args.model_path, 'decoder-{}-{}.ckpt'.format(epoch+1, i+1)))
+        #     torch.save(encoder.state_dict(), os.path.join(
+        #         args.model_path, 'encoder-{}-{}.ckpt'.format(epoch+1, i+1)))
+
     losses /= len(train_data_loader)
 
     return losses
@@ -70,6 +80,9 @@ def validate(val_data_loader, encoder, decoder, criterion, vocab, epoch):
     hypo = []
     losses = 0
     for i, (images, captions, lengths, target_caps) in enumerate(val_data_loader):
+
+        if i >= 20:
+            break
 
         # Set mini-batch dataset
         images = images.to(device)
@@ -151,26 +164,36 @@ def main(args):
     with open(args.vocab_path, 'rb') as f:
         vocab = pickle.load(f)
         
-    # Get glove pickles
-    glove_path = args.glove_path    
-    vectors = bcolz.open(f'{glove_path}/6B.{args.embed_size}.dat')[:]
-    words = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_words.pkl', 'rb'))
-    word2idx = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_idx.pkl', 'rb'))
-    glove = {w: vectors[word2idx[w]] for w in words}
-    
-    # Get weights matrix
-    weights_matrix = np.zeros((len(vocab), args.embed_size))
-    words_found = 0
+    if args.with_glove:
+        # Get glove pickles
+        glove_path = args.glove_path    
+        vectors = bcolz.open(f'{glove_path}/6B.{args.embed_size}.dat')[:]
+        words = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_words.pkl', 'rb'))
+        word2idx = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_idx.pkl', 'rb'))
+        glove = {w: vectors[word2idx[w]] for w in words}
 
-    # We compare the vocabulary from the built vocab, and the glove word vectors
-    for i in range(len(vocab)):
-        try: 
-            word = vocab.idx2word[i]
-            weights_matrix[i] = glove[word]
-            words_found += 1
-        except KeyError:
-            weights_matrix[i] = np.random.normal(scale=0.6, size=(args.embed_size, ))
-            
+        # Get weights matrix
+        weights_matrix = np.zeros((len(vocab), args.embed_size))
+        words_found = 0
+
+        # We compare the vocabulary from the built vocab, and the glove word vectors
+        for i in range(len(vocab)):
+            try: 
+                word = vocab.idx2word[i]
+                weights_matrix[i] = glove[word]
+                words_found += 1
+            except KeyError:
+                weights_matrix[i] = np.random.normal(scale=0.6, size=(args.embed_size, ))
+
+        # Build the models
+        encoder = EncoderCNN(args.embed_size).to(device)
+        decoder = DecoderRNNGlove(args.hidden_size, weights_matrix, args.num_layers).to(device)
+    else:
+        # Build models normally 
+        encoder = EncoderCNN(args.embed_size).to(device)
+        decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
+
+        
             
     # Build data loader
     train_data_loader = get_loader(args.image_dir, args.caption_path, vocab, 
@@ -181,10 +204,6 @@ def main(args):
                              transform, args.batch_size,
                              shuffle=True, num_workers=args.num_workers) 
 
-    # Build the models
-    encoder = EncoderCNN(args.embed_size).to(device)
-#     decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
-    decoder = DecoderRNN(args.hidden_size, weights_matrix, args.num_layers).to(device)
 
     if not args.reset_training:
         if isfile(os.path.join(args.model_path, 'best_encoder.ckpt')):
@@ -210,7 +229,7 @@ def main(args):
     else:
         best_bleu4 = 0
         train_encoder = False
-
+        
     best_epoch = 0
 
     # Loss and optimizer
@@ -314,6 +333,7 @@ if __name__ == '__main__':
     parser.add_argument('--reset_training', type=bool , default=False, help='continue training from last best saved weights')
     
     # Glove path
+    parser.add_argument('--with_glove', type=bool, default=True, help='set to false if using old decoder model')
     parser.add_argument('--glove_path', type=str , default='glove_data', help='give the path to glove directory')    
     
     # Model parameters

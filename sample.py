@@ -36,30 +36,35 @@ def main(args):
     with open(args.vocab_path, 'rb') as f:
         vocab = pickle.load(f)
     
-    # Get glove pickles
-    glove_path = args.glove_path
-    
-    vectors = bcolz.open(f'{glove_path}/6B.{args.embed_size}.dat')[:]
-    words = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_words.pkl', 'rb'))
-    word2idx = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_idx.pkl', 'rb'))
-    glove = {w: vectors[word2idx[w]] for w in words}
-    
-    # Get weights matrix
-    weights_matrix = np.zeros((len(vocab), args.embed_size))
-    words_found = 0
+    if args.with_glove:
+        # Get glove pickles
+        glove_path = args.glove_path
 
-    # We compare the vocabulary from the built vocab, and the glove word vectors
-    for i in range(len(vocab)):
-        try: 
-            word = vocab.idx2word[i]
-            weights_matrix[i] = glove[word]
-            words_found += 1
-        except KeyError:
-            weights_matrix[i] = np.random.normal(scale=0.6, size=(args.embed_size, ))
-    
-    # Build models
-    encoder = EncoderCNN(args.embed_size).eval()  # eval mode (batchnorm uses moving mean/variance)
-    decoder = DecoderRNN(args.hidden_size, weights_matrix, args.num_layers)
+        vectors = bcolz.open(f'{glove_path}/6B.{args.embed_size}.dat')[:]
+        words = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_words.pkl', 'rb'))
+        word2idx = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_idx.pkl', 'rb'))
+        glove = {w: vectors[word2idx[w]] for w in words}
+
+        # Get weights matrix
+        weights_matrix = np.zeros((len(vocab), args.embed_size))
+        words_found = 0
+
+        # We compare the vocabulary from the built vocab, and the glove word vectors
+        for i in range(len(vocab)):
+            try: 
+                word = vocab.idx2word[i]
+                weights_matrix[i] = glove[word]
+                words_found += 1
+            except KeyError:
+                weights_matrix[i] = np.random.normal(scale=0.6, size=(args.embed_size, ))
+
+        # Build models
+        encoder = EncoderCNN(args.embed_size).eval()  # eval mode (batchnorm uses moving mean/variance)
+        decoder = DecoderRNNGlove(args.hidden_size, weights_matrix, args.num_layers)
+    else:
+        encoder = EncoderCNN(args.embed_size).eval()  # eval mode (batchnorm uses moving mean/variance)
+        decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers)
+
     encoder = encoder.to(device)
     decoder = decoder.to(device)
 
@@ -100,6 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
     
     # Glove path
+    parser.add_argument('--with_glove', type=bool, default=True, help='set to false if using old decoder model')
     parser.add_argument('--glove_path', type=str , default='glove_data', help='give the path to glove directory')    
     
     # Model parameters (should be same as paramters in train.py)
