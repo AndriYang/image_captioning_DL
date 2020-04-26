@@ -6,6 +6,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 import pickle
+import bcolz
 from data_loader import get_loader 
 from build_vocab import Vocabulary
 from model import EncoderCNN, DecoderRNN
@@ -162,7 +163,28 @@ def main(args):
     # Load vocabulary wrapper
     with open(args.vocab_path, 'rb') as f:
         vocab = pickle.load(f)
+        
+    # Get glove pickles
+    glove_path = args.glove_path    
+    vectors = bcolz.open(f'{glove_path}/6B.{args.embed_size}.dat')[:]
+    words = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_words.pkl', 'rb'))
+    word2idx = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_idx.pkl', 'rb'))
+    glove = {w: vectors[word2idx[w]] for w in words}
     
+    # Get weights matrix
+    weights_matrix = np.zeros((len(vocab), args.embed_size))
+    words_found = 0
+
+    # We compare the vocabulary from the built vocab, and the glove word vectors
+    for i in range(len(vocab)):
+        try: 
+            word = vocab.idx2word[i]
+            weights_matrix[i] = glove[word]
+            words_found += 1
+        except KeyError:
+            weights_matrix[i] = np.random.normal(scale=0.6, size=(args.embed_size, ))
+            
+            
     # Build data loader
     data_loader = get_loader(args.image_dir, args.caption_path, vocab, 
                              transform, args.batch_size,
@@ -174,7 +196,8 @@ def main(args):
 
     # Build the models
     encoder = EncoderCNN(args.embed_size).to(device)
-    decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
+#     decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
+    decoder = DecoderRNN(args.hidden_size, weights_matrix, args.num_layers).to(device)
 
     if not args.reset_training:
         if isfile(os.path.join(args.model_path, 'best_encoder.ckpt')):
@@ -294,14 +317,17 @@ if __name__ == '__main__':
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
     parser.add_argument('--image_dir', type=str, default='data/resized2014', help='directory for resized images')
     parser.add_argument('--val_image_dir', type=str, default='data/val_resized2014', help='directory for validation resized images')
-    parser.add_argument('--caption_path', type=str, default='../../../../../datasets/coco2014/trainval_coco2014_captions/captions_train2014.json', help='path for train annotation json file')
-    parser.add_argument('--val_caption_path', type=str, default='../../../../../datasets/coco2014/trainval_coco2014_captions/captions_val2014.json', help='path for val annotation json file')
+    parser.add_argument('--caption_path', type=str, default='/home/jovyan/datasets/coco2014/trainval_coco2014_captions/captions_train2014.json', help='path for train annotation json file')
+    parser.add_argument('--val_caption_path', type=str, default='/home/jovyan/datasets/coco2014/trainval_coco2014_captions/captions_val2014.json', help='path for val annotation json file')
     parser.add_argument('--log_step', type=int , default=10, help='step size for prining log info')
     parser.add_argument('--save_step', type=int , default=1000, help='step size for saving trained models')
     parser.add_argument('--reset_training', type=bool , default=False, help='continue training from last best saved weights')
     
+    # Glove path
+    parser.add_argument('--glove_path', type=str , default='glove_data', help='give the path to glove directory')    
+    
     # Model parameters
-    parser.add_argument('--embed_size', type=int , default=256, help='dimension of word embedding vectors')
+    parser.add_argument('--embed_size', type=int , default=50, help='dimension of word embedding vectors')
     parser.add_argument('--hidden_size', type=int , default=512, help='dimension of lstm hidden states')
     parser.add_argument('--num_layers', type=int , default=1, help='number of layers in lstm')
     

@@ -39,8 +39,10 @@ class DecoderRNN(nn.Module):
     def __init__(self, hidden_size, weights_matrix, num_layers, max_seq_length=20):
         """Set the hyper-parameters and build the layers."""
         super(DecoderRNN, self).__init__()
-        self.embed = nn.Embedding(vocab_size, embed_size)
-        # self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
+        
+        # Load embedding layer with glove pretrained weights matrix
+        self.embed, vocab_size, embed_size = create_emb_layer(weights_matrix, True)
+        
         self.gru = nn.GRU(embed_size, hidden_size, num_layers, batch_first=True)
         self.linear = nn.Linear(hidden_size, vocab_size)
         self.max_seg_length = max_seq_length

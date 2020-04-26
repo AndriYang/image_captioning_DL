@@ -59,9 +59,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 #     parser.add_argument('--image_dir', type=str, default='./data/train2014/',
 #                         help='directory for train images')
-    parser.add_argument('--image_dir', type=str, default='../../../../../datasets/coco2014/train2014/',
+    parser.add_argument('--image_dir', type=str, default='/home/jovyan/datasets/coco2014/train2014/',
                         help='directory for train images')
-    parser.add_argument('--val_image_dir', type=str, default='../../../../../datasets/coco2014/val2014/',
+    parser.add_argument('--val_image_dir', type=str, default='/home/jovyan/datasets/coco2014/val2014/',
                         help='directory for val images')
     parser.add_argument('--output_dir', type=str, default='./data/resized2014/',
                         help='directory for saving resized images')
