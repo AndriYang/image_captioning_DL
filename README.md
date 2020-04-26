@@ -11,7 +11,7 @@ https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/ima
 3. ./download_glove6B.sh
 
 ## Build glove dictionary for use during training
-4. python build_glove
+4. python build_glove.py
 
 For the glove6B files, there are 4 different files of different dimensions:
 50d, 100d, 200d and 300d. By default, running the above line would use the default dimension of 50
