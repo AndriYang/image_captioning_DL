@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import os
+import bcolz
 from os import listdir
 from os.path import isfile, join
 import pickle
@@ -13,7 +14,6 @@ from torch.nn.utils.rnn import pack_padded_sequence
 from torchvision import transforms
 import matplotlib.pyplot as plt
 import shutil
-from torchtext.data.metrics import bleu_score
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -44,18 +44,41 @@ def main(args):
     with open(args.vocab_path, 'rb') as f:
         vocab = pickle.load(f)
     
+    # Get glove pickles
+    glove_path = args.glove_path
+    
+    vectors = bcolz.open(f'{glove_path}/6B.{args.embed_size}.dat')[:]
+    words = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_words.pkl', 'rb'))
+    word2idx = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_idx.pkl', 'rb'))
+    glove = {w: vectors[word2idx[w]] for w in words}
+    
+    # Get weights matrix
+    weights_matrix = np.zeros((len(vocab), args.embed_size))
+    words_found = 0
+
+    # We compare the vocabulary from the built vocab, and the glove word vectors
+    for i in range(len(vocab)):
+        try: 
+            word = vocab.idx2word[i]
+            weights_matrix[i] = glove[word]
+            words_found += 1
+        except KeyError:
+            weights_matrix[i] = np.random.normal(scale=0.6, size=(args.embed_size, ))
+    
+    
     # Build data loader
     data_loader = get_loader(args.image_dir, args.caption_path, vocab, 
                              transform, args.batch_size,
                              shuffle=True, num_workers=args.num_workers) 
     
-    val_data_loader = get_loader(args.val_image_dir, args.val_caption_path, vocab, 
-                             transform, args.batch_size,
-                             shuffle=True, num_workers=args.num_workers) 
+#     val_data_loader = get_loader(args.val_image_dir, args.val_caption_path, vocab, 
+#                              transform, args.batch_size,
+#                              shuffle=True, num_workers=args.num_workers) 
 
     # Build the models
     encoder = EncoderCNN(args.embed_size).to(device)
-    decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
+#     decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
+    decoder = DecoderRNN(args.hidden_size, weights_matrix, args.num_layers).to(device)
     
     # Loss and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -77,10 +100,6 @@ def main(args):
             
             # Forward, backward and optimize
             features = encoder(images)
-#             candidate_corpus = get_sentence(features, decoder, vocab)
-#             candidate_corpus = candidate_corpus.split(' ')
-#             x = bleu_score(candidate_corpus, sentences)
-#             print(x)
             outputs = decoder(features, captions, lengths)
             loss = criterion(outputs, targets)
             losses += loss.item()
@@ -103,57 +122,9 @@ def main(args):
                 
         losses /= len(data_loader)
         train_losses.append(losses)
-    
-    
-    # Find the latest encoder and decoder
-    model_root = 'models'
-    files = [f for f in listdir(model_root) if isfile(join(model_root, f))]
-    latest = int(len(files)/6)
-    
-    encoder = encoder.to(device)
-    decoder = decoder.to(device)
-
-    # Load the trained model parameters
-    encoder.load_state_dict(torch.load(f'models/encoder-{latest}-3000.ckpt'))
-    decoder.load_state_dict(torch.load(f'models/decoder-{latest}-3000.ckpt'))
-    
-    val_total_step = len(val_data_loader)
-    
-    val_loss = 0
-    val_losses =[]
-    for epoch in range(args.num_epochs):
-        for i, (images, captions, lengths, sentences) in enumerate(val_data_loader):
-            
-            # Set mini-batch dataset
-            images = images.to(device)
-            captions = captions.to(device)
-            targets = pack_padded_sequence(captions, lengths, batch_first=True)[0]
-            
-            # Forward, backward and optimize
-            features = encoder(images)
-            
-            outputs = decoder(features, captions, lengths)
-            loss = criterion(outputs, targets)
-            val_loss += loss.item()
-
-            # Print log info
-            if i % args.log_step == 0:
-                print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Perplexity: {:5.4f}'
-                      .format(epoch, args.num_epochs, i, val_total_step, loss.item(), np.exp(loss.item()))) 
-                
-#             # Save the model checkpoints
-#             if (i+1) % args.save_step == 0:
-#                 torch.save(decoder.state_dict(), os.path.join(
-#                     args.model_path, 'decoder-{}-{}.ckpt'.format(epoch+1, i+1)))
-#                 torch.save(encoder.state_dict(), os.path.join(
-#                     args.model_path, 'encoder-{}-{}.ckpt'.format(epoch+1, i+1)))
-                
-        val_loss /= len(data_loader)
-        val_losses.append(val_loss)
+       
         
-    
-        
-    plot_loss_graph(args.num_epochs, train_losses, val_losses, init_folder)
+    plot_loss_graph(args.num_epochs, train_losses, init_folder)
     
 def get_sentence(features, decoder, vocab):
     sampled_ids = decoder.sample(features)
@@ -196,8 +167,11 @@ if __name__ == '__main__':
     parser.add_argument('--log_step', type=int , default=10, help='step size for prining log info')
     parser.add_argument('--save_step', type=int , default=1000, help='step size for saving trained models')
     
+    # Glove path
+    parser.add_argument('--glove_path', type=str , default='glove_data', help='give the path to glove directory')    
+
     # Model parameters
-    parser.add_argument('--embed_size', type=int , default=256, help='dimension of word embedding vectors')
+    parser.add_argument('--embed_size', type=int , default=50, help='dimension of glove word embedding vectors')
     parser.add_argument('--hidden_size', type=int , default=512, help='dimension of lstm hidden states')
     parser.add_argument('--num_layers', type=int , default=1, help='number of layers in lstm')
     

@@ -3,7 +3,7 @@ from PIL import Image, ImageTk
 import os, os.path, sys
 import random
 import pickle
-
+import argparse
 
 from tkinter import filedialog
 
@@ -11,8 +11,9 @@ from tkinter import filedialog
 
 
 class Window(Frame):
-    def __init__(self, master=None, path=''):
+    def __init__(self, args, master=None, path=''):
         Frame.__init__(self, master)
+        self.args = args
         self.path = path
         self.master = master
         self.pack(fill=BOTH, expand=1)
@@ -53,7 +54,7 @@ class Window(Frame):
         btn.place(x=100,y=500)
       
     def predict(self):
-        os.system('python sample.py --image=' + self.image_path)
+        os.system(f'python sample.py --glove_path {self.args.glove_path}  --embed_size {self.args.embed_size} --image={self.image_path}')
         self.setlabel(display=True)
 
 
@@ -97,11 +98,20 @@ class Window(Frame):
         
     
     
-if __name__ == '__main__':       
+if __name__ == '__main__':
+    ## Take in arguments
+    parser = argparse.ArgumentParser()
+    
+    # Glove path
+    parser.add_argument('--glove_path', type=str , default='glove_data', help='give the path to glove directory')
+    # Embed dimension used for glove
+    parser.add_argument('--embed_size', type=int , default=50, help='dimension of glove word embedding vectors')
+    args = parser.parse_args()
+
     root = Tk()
     folder_path = filedialog.askdirectory()
     path = folder_path + '/'
-    app = Window(root,path)
+    app = Window(args, root,path)
     root.wm_title("Image Captioning")
     root.geometry("500x5000")
     root.mainloop()
