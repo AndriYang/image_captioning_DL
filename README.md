@@ -11,17 +11,17 @@ https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/ima
 3. ./download_glove6B.sh
 
 ## Build glove pickles for use during training
-For the glove6B files, there are 4 different files of different dimensions:
-50d, 100d, 200d and 300d
+4. python build_glove
 
-Please specify what embedding dimensions you prefer by using the --embed_size flag when running the 'build_glove.py' script
+For the glove6B files, there are 4 different files of different dimensions:
+50d, 100d, 200d and 300d. By default, running the above line would use the default dimension of 50
+
+If you want to test out with the other 3 dimensions, please specify what embedding dimensions you prefer by using the --embed_size flag when running the 'build_glove.py' script
 
 Example:
-4. python build_glove --embed_size 100
+python build_glove --embed_size 100
 
-The default dimensions used is 50. If you change the embedding dimension size here, you will have to include the same flag for
-'train.py' script.
-
+If you change the embedding dimension size here, you will have to include the same flag and dimension size for 'train.py' script.
 
 ## Preprocessing
 5. python build_vocab.py   
@@ -37,4 +37,4 @@ python train.py --embed_size 100
 
 ## GUI
 8. python app.py
-9. select the folder where the images is store for doing captioning prediction
+9. select the folder where the images are stored for doing captioning prediction
