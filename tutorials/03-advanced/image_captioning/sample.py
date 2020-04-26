@@ -76,10 +76,12 @@ if __name__ == '__main__':
     # Find the latest encoder and decoder
     model_root = 'models'
     files = [f for f in listdir(model_root) if isfile(join(model_root, f))]
-    latest = int(len(files)/6)
+    # latest = int(len(files)/6)
     
-    parser.add_argument('--encoder_path', type=str, default=f'models/encoder-{latest}-3000.ckpt', help='path for trained encoder')
-    parser.add_argument('--decoder_path', type=str, default=f'models/decoder-{latest}-3000.ckpt', help='path for trained decoder')
+    # parser.add_argument('--encoder_path', type=str, default=f'models/encoder-{latest}-3000.ckpt', help='path for trained encoder')
+    # parser.add_argument('--decoder_path', type=str, default=f'models/decoder-{latest}-3000.ckpt', help='path for trained decoder')
+    parser.add_argument('--encoder_path', type=str, default=f'models/best_encoder.ckpt', help='path for trained encoder')
+    parser.add_argument('--decoder_path', type=str, default=f'models/best_decoder.ckpt', help='path for trained decoder')
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
     
     # Model parameters (should be same as paramters in train.py)

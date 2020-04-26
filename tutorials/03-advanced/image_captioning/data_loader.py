@@ -24,9 +24,9 @@ class CocoDataset(data.Dataset):
         self.root = root
         self.coco = COCO(json)
         self.ids = list(self.coco.anns.keys())
+        print(len(self.ids))
         self.vocab = vocab
         self.transform = transform
-        print()
 
     def __getitem__(self, index):
         """Returns one data pair (image and caption)."""
@@ -34,6 +34,7 @@ class CocoDataset(data.Dataset):
         vocab = self.vocab
         ann_id = self.ids[index]
         caption = coco.anns[ann_id]['caption']
+        target_cap = caption
         img_id = coco.anns[ann_id]['image_id']
         path = coco.loadImgs(img_id)[0]['file_name']
 
@@ -42,15 +43,13 @@ class CocoDataset(data.Dataset):
             image = self.transform(image)
 
         # Convert caption (string) to word ids.
-        sentence = []
-        sentence.append(caption.split(' '))
         tokens = nltk.tokenize.word_tokenize(str(caption).lower())
         caption = []
         caption.append(vocab('<start>'))
         caption.extend([vocab(token) for token in tokens])
         caption.append(vocab('<end>'))
         target = torch.Tensor(caption)
-        return image, target, sentence
+        return image, target, target_cap
 
     def __len__(self):
         return len(self.ids)
@@ -74,8 +73,8 @@ def collate_fn(data):
     """
     # Sort a data list by caption length (descending order).
     data.sort(key=lambda x: len(x[1]), reverse=True)
-    
-    images, captions, sentences = zip(*data)
+    images, captions, target_cap = zip(*data)
+
     # Merge images (from tuple of 3D tensor to 4D tensor).
     images = torch.stack(images, 0)
 
@@ -85,7 +84,7 @@ def collate_fn(data):
     for i, cap in enumerate(captions):
         end = lengths[i]
         targets[i, :end] = cap[:end]        
-    return images, targets, lengths, sentences
+    return images, targets, lengths, target_cap
 
 def get_loader(root, json, vocab, transform, batch_size, shuffle, num_workers):
     """Returns torch.utils.data.DataLoader for custom coco dataset."""
