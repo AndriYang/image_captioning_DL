@@ -2,6 +2,9 @@
 # Source
 https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/image_captioning
 
+# Before anything else
+0. cd tutorials/03-advanced/image_captioning
+
 # To run
 ## Install requirements
 1. pip install -r requirements.txt
@@ -11,10 +14,10 @@ https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/ima
 3. ./download_glove6B.sh
 
 ## Build glove dictionary for use during training
-4. python build_glove.py
-
 For the glove6B files, there are 4 different files of different dimensions:
-50d, 100d, 200d and 300d. By default, running the above line would use the default dimension of 50
+50d, 100d, 200d and 300d. By default, running the following line would use the default dimension of 50
+
+4. python build_glove.py
 
 If you want to test out with the other 3 dimensions, please specify what embedding dimensions you prefer by using the --embed_size flag when running the 'build_glove.py' script
 
@@ -28,6 +31,8 @@ If you change the embedding dimension size here, you will have to include the sa
 6. python resize.py
 
 ## Training
+To train the code with the default 50 dimensions, run:
+
 7. python train.py 
 
 As mentioned earlier, if you decided to change the embedding dimensions from the default 50, please include the --embed_size flag
