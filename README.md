@@ -13,6 +13,7 @@ https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/ima
 ## Build glove dictionary for use during training
 For the glove6B files, there are 4 different files of different dimensions:
 50d, 100d, 200d and 300d. By default, running the following line would use the default dimension of 50
+
 4. python build_glove.py
 
 If you want to test out with the other 3 dimensions, please specify what embedding dimensions you prefer by using the --embed_size flag when running the 'build_glove.py' script
