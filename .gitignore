@@ -1,2 +1,4 @@
 tutorials/03-advanced/image_captioning/data
 tutorials/03-advanced/image_captioning/models
+tutorials/03-advanced/image_captioning/glove_data
+tutorials/03-advanced/image_captioning/results

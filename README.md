@@ -6,13 +6,35 @@ https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/ima
 ## Install requirements
 1. pip install -r requirements.txt
 
+## Download pretrained glove word embeddings
+2. chmod +x download_glove6B.sh
+3. ./download_glove6B.sh
+
+## Build glove pickles for use during training
+For the glove6B files, there are 4 different files of different dimensions:
+50d, 100d, 200d and 300d
+
+Please specify what embedding dimensions you prefer by using the --embed_size flag when running the 'build_glove.py' script
+
+Example:
+4. python build_glove --embed_size 100
+
+The default dimensions used is 50. If you change the embedding dimension size here, you will have to include the same flag for
+'train.py' script.
+
+
 ## Preprocessing
-2. python build_vocab.py   
-3. python resize.py
+5. python build_vocab.py   
+6. python resize.py
 
 ## Training
-4. python train.py 
+7. python train.py 
+
+As mentioned earlier, if you decided to change the embedding dimensions from the default 50, please include the --embed_size flag
+
+Example:
+python train.py --embed_size 100
 
 ## GUI
-5. python app.py
-6. select the folder where the images is store for doing captioning prediction
+8. python app.py
+9. select the folder where the images is store for doing captioning prediction

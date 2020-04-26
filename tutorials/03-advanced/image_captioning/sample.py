@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np 
 import argparse
 import pickle 
+import bcolz
 import os
 from os import listdir
 from os.path import isfile, join
@@ -34,10 +35,31 @@ def main(args):
     # Load vocabulary wrapper
     with open(args.vocab_path, 'rb') as f:
         vocab = pickle.load(f)
+    
+    # Get glove pickles
+    glove_path = args.glove_path
+    
+    vectors = bcolz.open(f'{glove_path}/6B.{args.embed_size}.dat')[:]
+    words = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_words.pkl', 'rb'))
+    word2idx = pickle.load(open(f'{glove_path}/6B.{args.embed_size}_idx.pkl', 'rb'))
+    glove = {w: vectors[word2idx[w]] for w in words}
+    
+    # Get weights matrix
+    weights_matrix = np.zeros((len(vocab), args.embed_size))
+    words_found = 0
 
+    # We compare the vocabulary from the built vocab, and the glove word vectors
+    for i in range(len(vocab)):
+        try: 
+            word = vocab.idx2word[i]
+            weights_matrix[i] = glove[word]
+            words_found += 1
+        except KeyError:
+            weights_matrix[i] = np.random.normal(scale=0.6, size=(args.embed_size, ))
+    
     # Build models
     encoder = EncoderCNN(args.embed_size).eval()  # eval mode (batchnorm uses moving mean/variance)
-    decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers)
+    decoder = DecoderRNN(args.hidden_size, weights_matrix, args.num_layers)
     encoder = encoder.to(device)
     decoder = decoder.to(device)
 
@@ -82,8 +104,11 @@ if __name__ == '__main__':
     parser.add_argument('--decoder_path', type=str, default=f'models/decoder-{latest}-3000.ckpt', help='path for trained decoder')
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
     
+    # Glove path
+    parser.add_argument('--glove_path', type=str , default='glove_data', help='give the path to glove directory')    
+    
     # Model parameters (should be same as paramters in train.py)
-    parser.add_argument('--embed_size', type=int , default=256, help='dimension of word embedding vectors')
+    parser.add_argument('--embed_size', type=int , default=50, help='dimension of glove word embedding vectors')
     parser.add_argument('--hidden_size', type=int , default=512, help='dimension of lstm hidden states')
     parser.add_argument('--num_layers', type=int , default=1, help='number of layers in lstm')
     args = parser.parse_args()

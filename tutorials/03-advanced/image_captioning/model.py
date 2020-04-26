@@ -22,12 +22,26 @@ class EncoderCNN(nn.Module):
         features = self.bn(self.linear(features))
         return features
 
+# Creates the embedding layer with the weight matrix built with glove, and passes into the Decoder
+def create_emb_layer(weights_matrix, non_trainable=False):
+    num_embeddings, embedding_dim = weights_matrix.shape
+    emb_layer = nn.Embedding(num_embeddings, embedding_dim)
+    tensor_weights = torch.from_numpy(weights_matrix)
+    emb_layer.load_state_dict({'weight': tensor_weights})
+    if non_trainable:
+        emb_layer.weight.requires_grad = False
+
+    return emb_layer, num_embeddings, embedding_dim
+    
 
 class DecoderRNN(nn.Module):
-    def __init__(self, embed_size, hidden_size, vocab_size, num_layers, max_seq_length=20):
+    def __init__(self, hidden_size, weights_matrix, num_layers, max_seq_length=20):
         """Set the hyper-parameters and build the layers."""
         super(DecoderRNN, self).__init__()
-        self.embed = nn.Embedding(vocab_size, embed_size)
+        
+        # Load the pretrained weight matrix built with glove into embed layer
+        self.embed, vocab_size, embed_size = create_emb_layer(weights_matrix, True)
+
         self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
         self.linear = nn.Linear(hidden_size, vocab_size)
         self.max_seg_length = max_seq_length
