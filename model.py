@@ -70,7 +70,7 @@ class DecoderRNN(nn.Module):
 class DecoderRNNGlove(nn.Module):
     def __init__(self, hidden_size, weights_matrix, num_layers, max_seq_length=20):
         """Set the hyper-parameters and build the layers."""
-        super(DecoderRNN, self).__init__()
+        super(DecoderRNNGlove, self).__init__()
         
         # Load embedding layer with glove pretrained weights matrix
         self.embed, vocab_size, embed_size = create_emb_layer(weights_matrix, True)

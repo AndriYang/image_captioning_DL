@@ -9,7 +9,7 @@ from os import listdir
 from os.path import isfile, join
 from torchvision import transforms 
 from build_vocab import Vocabulary
-from model import EncoderCNN, DecoderRNN
+from model import EncoderCNN, DecoderRNN, DecoderRNNGlove
 from PIL import Image
 
 
@@ -85,7 +85,8 @@ def main(args):
     sampled_caption = []
     for word_id in sampled_ids:
         word = vocab.idx2word[word_id]
-        sampled_caption.append(word)
+        if word != '<start>' and word != '<end>':
+            sampled_caption.append(word)
         if word == '<end>':
             break
     sentence = ' '.join(sampled_caption)

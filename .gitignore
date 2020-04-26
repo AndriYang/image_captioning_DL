@@ -1,8 +1,11 @@
 .ipynb_checkpoints
+__pycache__
 save.p
 glove_data
 data
 models
+models_without_glove
+results
 evalfunc/bleu/__pycache__
 evalfunc/cider/__pycache__
 evalfunc/meteor/__pycache__

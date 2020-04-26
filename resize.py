@@ -13,16 +13,16 @@ def resize_images(image_dir, val_image_dir, output_dir, val_output_dir, size):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    else:
-        shutil.rmtree(output_dir)
-        os.makedirs(output_dir)
+    # else:
+    #     shutil.rmtree(output_dir)
+    #     os.makedirs(output_dir)
      
     if not os.path.exists(val_output_dir):
         os.makedirs(val_output_dir)
      
-    else:
-        shutil.rmtree(val_output_dir)
-        os.makedirs(val_output_dir)
+    # else:
+    #     shutil.rmtree(val_output_dir)
+    #     os.makedirs(val_output_dir)
 
     images = os.listdir(image_dir)
     num_images = len(images)

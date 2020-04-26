@@ -9,7 +9,7 @@ import pickle
 import bcolz
 from data_loader import get_loader 
 from build_vocab import Vocabulary
-from model import EncoderCNN, DecoderRNN
+from model import EncoderCNN, DecoderRNN, DecoderRNNGlove
 from torch.nn.utils.rnn import pack_padded_sequence
 from torchvision import transforms
 import matplotlib.pyplot as plt
@@ -141,9 +141,9 @@ def main(args):
     
     if not os.path.exists(init_folder):
         os.makedirs(init_folder)
-    else:
-        shutil.rmtree(init_folder)
-        os.makedirs(init_folder)
+    # else:
+    #     shutil.rmtree(init_folder)
+    #     os.makedirs(init_folder)
         
     # Image preprocessing, normalization for the pretrained resnet
     transform = transforms.Compose([ 
