@@ -36,7 +36,7 @@ def main(args):
     with open(args.vocab_path, 'rb') as f:
         vocab = pickle.load(f)
     
-    if args.with_glove:
+    if args.with_glove == 'True':
         # Get glove pickles
         glove_path = args.glove_path
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
     
     # Glove path
-    parser.add_argument('--with_glove', type=bool, default=True, help='set to false if using old decoder model')
+    parser.add_argument('--with_glove', type=str, default='True', help='set to false if using old decoder model')
     parser.add_argument('--glove_path', type=str , default='glove_data', help='give the path to glove directory')    
     
     # Model parameters (should be same as paramters in train.py)
