@@ -3,11 +3,7 @@ save.p
 glove_data
 data
 models
-
-
-
-#uncomment them later
-# evalfunc/bleu/__pycache__
-# evalfunc/cider/__pycache__
-# evalfunc/meteor/__pycache__
-# evalfunc/rouge/__pycache__
+evalfunc/bleu/__pycache__
+evalfunc/cider/__pycache__
+evalfunc/meteor/__pycache__
+evalfunc/rouge/__pycache__
