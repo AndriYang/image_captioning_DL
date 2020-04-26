@@ -30,8 +30,8 @@ def train(train_data_loader, encoder, decoder, criterion, encoder_optimizer, dec
     losses = 0
     for i, (images, captions, lengths, sentences) in enumerate(train_data_loader):
         
-        if i >= 20:
-            break
+        # if i >= 20:
+        #     break
 
         # Set mini-batch dataset
         images = images.to(device)
@@ -81,8 +81,8 @@ def validate(val_data_loader, encoder, decoder, criterion, vocab, epoch):
     losses = 0
     for i, (images, captions, lengths, target_caps) in enumerate(val_data_loader):
 
-        if i >= 20:
-            break
+        # if i >= 20:
+        #     break
 
         # Set mini-batch dataset
         images = images.to(device)
@@ -229,7 +229,7 @@ def main(args):
     else:
         best_bleu4 = 0
         train_encoder = False
-        
+
     best_epoch = 0
 
     # Loss and optimizer
