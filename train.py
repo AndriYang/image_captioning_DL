@@ -58,13 +58,6 @@ def train(train_data_loader, encoder, decoder, criterion, encoder_optimizer, dec
         if i % args.log_step == 0:
             print(f'Training Epoch [{epoch}/{args.num_epochs}], Step [{i}/{total_step}], Loss: {loss.item():.4f}, Perplexity: {np.exp(loss.item()):5.4f}') 
 
-        # Save the model checkpoints
-        # if (i+1) % args.save_step == 0:
-        #     torch.save(decoder.state_dict(), os.path.join(
-        #         args.model_path, 'decoder-{}-{}.ckpt'.format(epoch+1, i+1)))
-        #     torch.save(encoder.state_dict(), os.path.join(
-        #         args.model_path, 'encoder-{}-{}.ckpt'.format(epoch+1, i+1)))
-
     losses /= len(train_data_loader)
 
     return losses
