@@ -61,7 +61,7 @@ class Window(Frame):
         btn.place(x=100,y=500)
       
     def predict(self):
-        os.system(f'python sample.py --glove_path {self.args.glove_path}  --embed_size {self.args.embed_size} --image={self.image_path}')
+        os.system(f'python sample.py --with_glove {self.args.with_glove} --glove_path {self.args.glove_path}  --embed_size {self.args.embed_size} --image={self.image_path}')
         self.setlabel(display=True)
 
 
@@ -110,6 +110,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     
     # Glove path
+    parser.add_argument('--with_glove', type=str, default='True', help='set to false if using old decoder model')
     parser.add_argument('--glove_path', type=str , default='glove_data', help='give the path to glove directory')
     # Embed dimension used for glove
     parser.add_argument('--embed_size', type=int , default=50, help='dimension of glove word embedding vectors')
