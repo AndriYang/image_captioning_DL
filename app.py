@@ -35,7 +35,7 @@ class Window(Frame):
         while img_name in img_list:
             img_name = random.choice(img_names)
         img_list.append(img_name)
-        print(img_list)
+        # print(img_list)
         return img_name
     
     def img_resize(self, img):

@@ -322,7 +322,7 @@ if __name__ == '__main__':
     parser.add_argument('--caption_path', type=str, default='/home/jovyan/datasets/coco2014/trainval_coco2014_captions/captions_train2014.json', help='path for train annotation json file')
     parser.add_argument('--val_caption_path', type=str, default='/home/jovyan/datasets/coco2014/trainval_coco2014_captions/captions_val2014.json', help='path for val annotation json file')
     parser.add_argument('--log_step', type=int , default=10, help='step size for prining log info')
-    parser.add_argument('--save_step', type=int , default=1000, help='step size for saving trained models')
+    # parser.add_argument('--save_step', type=int , default=1000, help='step size for saving trained models')
     parser.add_argument('--reset_training', type=bool , default=False, help='continue training from last best saved weights')
     
     # Glove path
@@ -331,8 +331,8 @@ if __name__ == '__main__':
     
     # Model parameters
     parser.add_argument('--embed_size', type=int , default=50, help='dimension of word embedding vectors')
-    parser.add_argument('--hidden_size', type=int , default=512, help='dimension of lstm hidden states')
-    parser.add_argument('--num_layers', type=int , default=1, help='number of layers in lstm')
+    parser.add_argument('--hidden_size', type=int , default=512, help='dimension of GRU hidden states')
+    parser.add_argument('--num_layers', type=int , default=1, help='number of layers in GRU')
     
     parser.add_argument('--num_epochs', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=128)
