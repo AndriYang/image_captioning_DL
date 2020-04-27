@@ -8,7 +8,7 @@ import argparse
 from tkinter import filedialog
 
 
-
+img_list = []
 
 class Window(Frame):
     def __init__(self, args, master=None, path=''):
@@ -27,8 +27,15 @@ class Window(Frame):
         
     
     def get_img_name(self, path):
+        global img_list
         img_names = os.listdir(self.path)
         img_name = random.choice(img_names)
+        if len(img_list) == len(img_names):
+            img_list = []
+        while img_name in img_list:
+            img_name = random.choice(img_names)
+        img_list.append(img_name)
+        print(img_list)
         return img_name
     
     def img_resize(self, img):
